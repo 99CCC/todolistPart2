@@ -17,6 +17,7 @@ export async function fetchTodosFromAPI(){
 
 export async function addTodoAPI(todo){
     try{
+        console.log("From helper:",todo)
         const response = await fetch(baseurl, {
             method: "POST",
             headers: { "Content-type": "application/json"},
@@ -34,10 +35,12 @@ export async function addTodoAPI(todo){
 
 export async function toggleTodoAPI(todoId){
     try{
+        console.log("ID toggle: ",todoId);
         const response = await fetch((baseurl+"/"+todoId), {
             method: "PUT",
             headers: { "Content-type": "application/json"}
         });
+
         if (response.ok){
             return await response.json();
         } else {
@@ -66,6 +69,7 @@ export async function removeTodoFromAPI(todoId){
 
 export async function updateTodoFromAPI(todoId, updateField){
     try{
+        console.log(todoId);
         const response = await fetch(baseurl+"/"+"updateTitle/"+todoId, {
             method: "PUT",
             headers:{

@@ -8,7 +8,7 @@ import { fetchTodosFromAPI, addTodoAPI, toggleTodoAPI, removeTodoFromAPI, update
 function TodoList(){
 const [todos, setTodos] = useState([]);
 const [newTodo, setNewTodo] = useState("");
-const [editingTodoId, setEditingTodoId] = useState(null);
+const [editingTodolist_id, setEditingTodolist_id] = useState(null);
 const [editTitle, setEditTitle] = useState("");
 
 
@@ -24,6 +24,7 @@ useEffect(() => {
 async function handleAddTodo(){
     if(newTodo.trim() === "") return;
     const newTodoItem = {title: newTodo, completed: false};
+    console.log("NewTodoItem:", newTodoItem);
     const addedTodo = await addTodoAPI(newTodoItem);
     if (addedTodo){
         setTodos([...todos, addedTodo]);
@@ -31,35 +32,40 @@ async function handleAddTodo(){
     }
 }
 
-async function handleToggleTodo(todoId){
-    const updatedTodo = await toggleTodoAPI(todoId);
-    if(updatedTodo) {
-        setTodos(todos.map((t) => (t.id === updatedTodo.id ? updatedTodo : t)));
+async function handleToggleTodo(todolist_id) {
+    console.log("handletoggle called");
+    const updatedTodos = await toggleTodoAPI(todolist_id);
+    if (updatedTodos && updatedTodos.length > 0) {
+        const updatedTodo = updatedTodos[0];
+        setTodos(todos.map((t) => (t.todolist_id === updatedTodo.todolist_id ? updatedTodo : t)));
     }
 }
 
-async function handleRemoveTodo(todoId){
-    const isRemoved = await removeTodoFromAPI(todoId);
+
+async function handleRemoveTodo(todolist_id){
+    const isRemoved = await removeTodoFromAPI(todolist_id);
     if(isRemoved){
-        setTodos(todos.filter((t) => t.id !== todoId));
+        setTodos(todos.filter((t) => t.todolist_id !== todolist_id));
     }
 }
 
 async function handleEdit(todo){
-    setEditingTodoId(todo.id);
+    setEditingTodolist_id(todo.todolist_id);
     setEditTitle(todo.title);
 }
 
-async function handleConfirmUpdate(todoId){
-    const updatedTodo = await updateTodoFromAPI(todoId, editTitle);
-    if(updatedTodo){
-        setEditingTodoId(null);
-        await loadTodos();
+async function handleConfirmUpdate(todolist_id) {
+    const updatedTodo = await updateTodoFromAPI(todolist_id, editTitle);
+    if (updatedTodo) {
+        setEditingTodolist_id(null);
+        setTodos(todos.map((t) =>
+            t.todolist_id === updatedTodo.todolist_id ? updatedTodo : t
+        ));
     }
 }
 
 function handleCancelUpdate(){
-    setEditingTodoId(null);
+    setEditingTodolist_id(null);
     setEditTitle("");
 }
 
@@ -81,9 +87,9 @@ function handleCancelUpdate(){
             <ul className="list-group">
             {todos.map((todo) => (
                 <li
-                key={todo.id}
+                key={todo.todolist_id}
                 className="list-group-item d-flex justify-content-between align-items-center">
-                    {editingTodoId === todo.id ?(
+                    {editingTodolist_id === todo.todolist_id ?(
                         <>
                         <input
                             type="text"
@@ -94,7 +100,7 @@ function handleCancelUpdate(){
                         <div className="d-flex">
                             <button
                             className="btn btn-success btn-sm me-2"
-                            onClick={() => handleConfirmUpdate(todo.id)}>Confirm Update</button>
+                            onClick={() => handleConfirmUpdate(todo.todolist_id)}>Confirm Update</button>
                             <button
                                 className="btn btn-secondary btn-sm"
                                 onClick={handleCancelUpdate}>
@@ -105,12 +111,13 @@ function handleCancelUpdate(){
                     ):(
                         <>
                         <span
-                        className={`flex-grow-1 todo-title ${todo.completed ? "text-decoration-linethrough" : ""}`}
-                        onClick={() => handleToggleTodo(todo)}
-                        style={{cursor: "pointer"}}
+                        className={`flex-grow-1 todo-title ${todo.completed ? "todo-completed" : ""}`}
+                        onClick={() => handleToggleTodo(todo.todolist_id)}
+                        style={{ cursor: "pointer" }}
                         >
-                            {todo.title}
-                            </span>
+                        {todo.title}
+                        </span>
+
                         <div className="d-flex">
                             <button
                             className="btn btn-warning btn-sm me-2"
@@ -119,7 +126,7 @@ function handleCancelUpdate(){
                             </button>
                             <button
                             className="btn btn-danger btn-sm"
-                            onClick={() => handleRemoveTodo(todo.id)}>
+                            onClick={() => handleRemoveTodo(todo.todolist_id)}>
                                 Delete
                             </button>
                         </div>

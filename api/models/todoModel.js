@@ -1,50 +1,90 @@
-let todos = [
-    { id: 1, title: 'todo1', completed: false},
-    { id: 2, title: 'todo2', completed: true}
-];
+// Get dbServiceInstance
+async function getDbServiceInstance() {
+    try{
+        const { dbServiceInstancePromise } = require("../index.js");
+        const dbServiceInstance = await dbServiceInstancePromise;
+        if (!dbServiceInstance) {
+            throw new Error('Database service not initialized');
+        }
+        return dbServiceInstance;
+    } catch (error){
+        throw error;
+    }
+}
 
 //Get all
-function getAllTodosModel(){
-    return todos;
+async function getAllTodosModel(){
+        try{
+            const dbServiceInstance = await getDbServiceInstance();
+            const query = 'SELECT * FROM public.todolist';
+            const response = await dbServiceInstance.queryMethod(query);
+            return response;
+        } catch (error){
+            throw error;
+        }
 }
 
 //Add new
-function addTodoModel(newTodo){
-    const id = todos.length + 1;
-    const todo = {id, ...newTodo};
-    todos.push(todo);
-    return todo;    
+async function addTodoModel(newTodo){
+    try{
+        const dbServiceInstance = await getDbServiceInstance();
+        const query = 'INSERT INTO public.todolist (title) VALUES ($1) RETURNING *';
+        const params = [newTodo];
+        const response = await dbServiceInstance.queryMethod(query, params);
+        return response[0];
+    }catch(error){
+        throw error
+    }
 }
 
 //Toggler
-function toggleTodoModel(id) {
-    const todoIndex = todos.findIndex((todo) => todo.id == id);
-    if (todoIndex > -1) {
-        todos[todoIndex].completed = !todos[todoIndex].completed;
-        return todos[todosIndex];
+async function toggleTodoModel(id) {
+    try{
+        console.log("Model Called");
+        const dbServiceInstance = await getDbServiceInstance();
+        const selectQuery = 'SELECT completed FROM public.todolist WHERE todolist_id = $1';
+        const selectParams = [id];
+        console.log(selectParams);
+        const selectResponse = await dbServiceInstance.queryMethod(selectQuery, selectParams);
+        console.log(selectResponse);
+        let check = selectResponse[0].completed;
+        console.log("pre",check);
+        if (check){check = false;}else{check = true};
+        console.log("post",check);
+        const updateQuery = 'UPDATE public.todolist SET completed = $1 WHERE todolist_id = $2 RETURNING *';
+        const updateParams = [check, id];
+        const updateResponse = await dbServiceInstance.queryMethod(updateQuery, updateParams);
+        console.log(updateResponse);
+        return updateResponse;
+    }catch(error){
+        throw error;
     }
-    return null;
 }
 
 //Remove
-function removeTodoModel(id){
-    const todoIndex = todos.findIndex((todo) => todo.id == id);
-    if (todoIndex > -1){
-        const removedTodo = todos.splice(todoIndex, 1);
-        return removedTodo[0];
+async function removeTodoModel(id){
+    try{
+        const dbServiceInstance = await getDbServiceInstance();
+        const query = 'DELETE FROM public.todolist WHERE todolist_id = $1 RETURNING *';
+        const params = [id.id];
+        const response = await dbServiceInstance.queryMethod(query, params);
+        return response;
+    }catch(error){
+        throw error;
     }
-    return null;
 }
 
 //Update Title
-function updateTodoModel(id, updatedFields){
-    const todoIndex = todos.findIndex((todo) => todo.id == id);
-    if (todoIndex > -1){
-        const updatedTodo = {...todos[todoIndex], ...updatedFields};
-        todos[todoIndex] = updatedTodo;
-        return updatedTodo;
+async function updateTodoModel(id, updatedFields){
+    try{
+        const dbServiceInstance = await getDbServiceInstance();
+        const query = 'UPDATE public.todolist SET title = $2 WHERE todolist_id = $1 RETURNING *';
+        const params = [id.id, updatedFields];
+        const response = await dbServiceInstance.queryMethod(query,params);
+        return response;
+    }catch(error){
+        throw error;
     }
-    return null;
 }
 
 

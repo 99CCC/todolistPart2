@@ -6,7 +6,7 @@ const { getAllTodosModel,
 
 async function getTodosController(req, res){
     try{
-        const todos = getAllTodosModel();
+        const todos = await getAllTodosModel();
         if(todos){
         res.json(todos)
     }else{
@@ -19,32 +19,36 @@ async function getTodosController(req, res){
 
 async function addTodoController(req, res){
     try{
-        const newTodo = req.body;
-        const addedTodo = addTodoModel(newTodo);
+        const newTodo = req.body.title;
+        const addedTodo = await addTodoModel(newTodo);
         res.status(201).json(addedTodo);
     }catch(error){
         res.status(500).json({message: 'Error adding todo', error});
     }
 }
 
-async function toggleTodoController(req, res){
-    try{
-        const id = req.params.id;
-        const updatedTodo = toggleTodoModel(id);
-        if (updatedTodo){
-            res.json(updateTodo);
-        }else{
-            res.status(404).json({message: 'Todo not found' });
+async function toggleTodoController(req, res) {
+    console.log("Toggle Controller Called, P:", req.params.id);
+    try {
+        const id = req.params.id;  
+        const updatedTodo = await toggleTodoModel(id);
+
+        if (updatedTodo) {
+            console.log("Returning to frontend");
+            res.status(200).json(updatedTodo); //Added in status code here!
+        } else {
+            res.status(404).json({ message: 'Todo not found' });
         }
-    }catch (error){
-        res.status(500).json({message: "Error toggling todo object", error})
+    } catch (error) {
+        res.status(500).json({ message: "Error toggling todo object", error });
     }
 }
 
+
 async function removeTodoController(req, res){
     try{
-        const id = req.params.id;
-        const removedTodo = removeTodoModel(id);
+        const id = req.params;
+        const removedTodo = await removeTodoModel(id);
         if(removedTodo){
             res.json({message: 'Todo removed', removedTodo});
         }else{
@@ -58,17 +62,19 @@ async function removeTodoController(req, res){
 
 async function updateTodoController(req,res){
     try{
-        const id = req.params.id;
-        const updateFields = req.body;
+        console.log("Controller P:",req.params, " B:", req.body);
 
-        const updateTodo =  updateTodoModel(id, updateFields);
-        if(updateTodo){
-            res.json({message: 'Updated Todo', updateTodo});
+        const id = req.params;
+        const updateFields = req.body.title;
+
+        const updateTodo =  await updateTodoModel(id, updateFields);
+        if(updateTodo.length){
+            res.status(200).json(updateTodo[0]);
         }else{
             res.status(404).json({message: 'Todo not found'});
         }
     }catch (error){
-
+        res.status(500).json({message: 'Error Updating todo object', error});
     }
 }
 
